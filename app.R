@@ -73,9 +73,8 @@ SIGNALS <- list(
     "\\bwhether \\w+ (reduce[sd]?|increase[sd]?|prevent[sd]?|lower[sd]?)\\b"
   ),
   descriptive = c(
-    "\\bdescribe\\b", "\\bcharacteri[sz]e\\b", "\\bprevalence of\\b",
-    "\\bincidence of\\b", "\\bdistribution of\\b", "\\btrends in\\b",
-    "\\bburden of\\b", "\\bpatterns of\\b", "\\bfrequency of\\b"
+    "\\bdescribe\\b", "\\bcharacteri[sz]e\\b", "\\bdistribution of\\b",
+    "\\btrends in\\b", "\\bburden of\\b", "\\bpatterns of\\b"
   ),
   predictive = c(
     "\\b(develop|derive|validate|update)\\w*\\b.{0,25}\\b(prediction|prognostic|risk) model\\b",
@@ -90,6 +89,10 @@ SIGNALS <- list(
     "\\bdeterminants? of\\b", "\\bpredictors? of\\b", "\\brole of\\b"
   )
 )
+
+# Outcome-measure nouns: descriptive on their own, not alongside a causal or
+# predictive cue.
+MEASURE <- c("\\bprevalence of\\b", "\\bincidence of\\b", "\\bfrequency of\\b")
 
 # ---- helpers ---------------------------------------------------------------
 
@@ -142,6 +145,11 @@ score_sentences <- function(sentences) {
 
   sig <- vapply(sentences, function(s) {
     hits <- names(SIGNALS)[vapply(SIGNALS, function(p) g(p, s), logical(1))]
+    # "incidence of", "prevalence of" are often just how the outcome is
+    # measured ("the effect of X on the incidence of Y"); they point to a
+    # descriptive question only when nothing else in the sentence does
+    if (g(MEASURE, s) && !any(c("causal", "predictive", "descriptive") %in% hits))
+      hits <- c(hits, "descriptive")
     if (!length(hits)) "none" else paste(hits, collapse = " + ")
   }, character(1), USE.NAMES = FALSE)
 
