@@ -162,6 +162,10 @@ classify_signal <- function(sig) {
   tasks <- c("causal", "descriptive", "predictive")
   present <- tasks[vapply(tasks, function(t) any(grepl(t, sig, fixed = TRUE)),
                           logical(1))]
+  assoc <- grepl("associational", sig, fixed = TRUE)
+  # wording for more than one type, or for one type alongside associational
+  # wording, is mixed: the reader cannot tell which question is meant
+  if (length(present) > 1 || (length(present) == 1 && assoc)) return("mixed")
   if (length(present) == 1) present else "ambiguous"
 }
 
@@ -276,11 +280,19 @@ server <- function(input, output, session) {
       sig <- paste(found$signal, collapse = " ")
       task <- classify_signal(sig)
       assoc <- grepl("associational", sig, fixed = TRUE)
-      if (task != "ambiguous") {
+      if (task == "mixed") {
+        words <- strsplit(gsub(" \\+ ", " ", sig), " ")[[1]]
+        kinds <- c(intersect(c("causal", "descriptive", "predictive"), words),
+                   if (assoc) "associational")
+        qtype <- list(span(class = "status warn", "Mixed. "),
+                      "The aim uses ", paste(kinds, collapse = " and "),
+                      " wording, so it is not clear which kind of question the study ",
+                      "addresses. State whether the aim is descriptive, predictive ",
+                      "or causal.")
+      } else if (task != "ambiguous") {
         qtype <- list(span(class = "status ok",
                            paste0(toupper(substring(task, 1, 1)), substring(task, 2), ". ")),
-                      "The wording suggests a ", task, " question.",
-                      if (assoc) " It also uses associational wording, which on its own does not indicate the type of question.")
+                      "The wording suggests a ", task, " question.")
       } else if (assoc) {
         qtype <- list(span(class = "status warn", "Unclear. "),
                       "Terms such as \"association between\", \"risk factors for\" and ",
