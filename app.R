@@ -171,55 +171,49 @@ ui <- fluidPage(
   tags$head(
     tags$title("Aim Check"),
     tags$style(HTML("
-      body { font-family: Palatino, 'Palatino Linotype', 'Book Antiqua',
-             Georgia, serif; color: #1a1a1a; background: #fbfaf8; }
-      .container-fluid { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem; }
-      h1 { font-size: 1.6rem; font-weight: normal; letter-spacing: .01em;
-           margin: 0 0 .4rem 0; }
-      .lede { color: #555; font-size: .95rem; margin-bottom: 1.8rem;
-              line-height: 1.55; }
-      textarea { font-family: Palatino, Georgia, serif !important;
-                 font-size: .95rem !important; line-height: 1.5;
-                 border: 1px solid #ccc7bf !important; border-radius: 2px; }
-      .btn { border-radius: 2px; font-family: inherit; }
-      .btn-default { background: #2d2d2d; color: #fff; border: none;
-                     padding: .45rem 1.2rem; }
-      .btn-link { color: #666; padding-left: 0; }
-      .verdict { padding: .9rem 1.1rem; border-left: 4px solid #999;
-                 background: #f3f1ed; margin: 1.6rem 0 1.2rem 0;
-                 font-size: .97rem; line-height: 1.5; }
-      .v-green  { border-left-color: #3f7d4e; }
-      .v-yellow { border-left-color: #b8892b; }
-      .v-red    { border-left-color: #a33b32; }
-      .sent { padding: .7rem 0; border-bottom: 1px solid #e7e3dc; }
-      .sent-text { font-size: .95rem; line-height: 1.5; }
-      .meta { font-size: .8rem; color: #6b6b6b; margin-top: .3rem;
-              font-family: -apple-system, 'Segoe UI', sans-serif; }
-      .tag { display: inline-block; padding: .05rem .45rem; margin-right: .4rem;
-             border: 1px solid #c9c4bb; border-radius: 2px; font-size: .75rem; }
-      .note { font-size: .87rem; color: #555; line-height: 1.55;
-              margin-top: 1.4rem; padding-top: 1rem;
-              border-top: 1px solid #e7e3dc; }
-      h2 { font-size: 1.05rem; font-weight: normal; margin: 1.8rem 0 .3rem 0; }
+      html, body { font-size: 18px; }
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+             color: #222; background: #fff; line-height: 1.55; }
+      .container-fluid { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; }
+      h1 { font-size: 28px; font-weight: 600; margin: 0 0 8px; }
+      h2 { font-size: 18px; font-weight: 600; margin: 32px 0 8px; }
+      p.intro { margin: 0 0 4px; }
+      p.small, .small { font-size: 15px; color: #666; }
+      textarea.form-control { font-size: 18px; line-height: 1.5; padding: 10px 12px;
+                              border-radius: 4px; }
+      .btn { font-size: 17px; padding: 8px 22px; border-radius: 4px; }
+      .btn-primary { background: #1f4e79; border-color: #1f4e79; }
+      a.action-button.example { font-size: 16px; margin-left: 16px; color: #1f4e79; }
+      table.res { width: 100%; border-collapse: collapse; margin-top: 8px; }
+      table.res td { padding: 10px 0; border-top: 1px solid #ddd; vertical-align: top; }
+      table.res td.k { width: 190px; font-weight: 600; padding-right: 16px; }
+      .status { font-weight: 600; }
+      .ok   { color: #2f6b3a; }
+      .warn { color: #8a5a00; }
+      .bad  { color: #a1332a; }
+      table.sent { width: 100%; border-collapse: collapse; font-size: 16px; }
+      table.sent th { text-align: left; font-weight: 600; font-size: 14px; color: #555;
+                      border-bottom: 1px solid #bbb; padding: 6px 8px 6px 0; }
+      table.sent td { border-bottom: 1px solid #e5e5e5; padding: 8px 8px 8px 0;
+                      vertical-align: top; }
+      table.sent td.c { white-space: nowrap; font-size: 15px; color: #444; }
+      .foot { margin-top: 36px; padding-top: 12px; border-top: 1px solid #ddd; }
+      @media (max-width: 560px) { table.res td.k { width: 120px; } }
     "))
   ),
 
   h1("Aim Check"),
-  div(class = "lede",
-      "Paste the sentence or sentences in which your paper states what it set",
-      "out to do — the abstract objective, the end of the introduction, or",
-      "both. This tool reports whether an aim statement can be located, and",
-      "what kind of research question its wording points to.",
-      tags$br(),
-      tags$span(style = "color:#777;",
-                "Everything runs in your browser. No text is sent anywhere.")),
+  p(class = "intro",
+    "Paste the aim of your study as it appears in the abstract or at the end",
+    "of the introduction."),
+  p(class = "small", "The check runs in your browser. Your text is not sent anywhere."),
 
-  textAreaInput("txt", NULL, value = "", rows = 7, width = "100%",
-                placeholder = "Paste your aim statement here..."),
+  textAreaInput("txt", NULL, value = "", rows = 6, width = "100%",
+                placeholder = "The aim of this study was to ..."),
 
   div(
-    actionButton("go", "Check aim"),
-    actionLink("example", "use an example", style = "margin-left: 1rem;")
+    actionButton("go", "Check", class = "btn-primary"),
+    actionLink("example", "Load an example", class = "example")
   ),
 
   uiOutput("results")
@@ -242,124 +236,82 @@ server <- function(input, output, session) {
     d <- scored()
 
     if (is.null(d) || !nrow(d)) {
-      return(div(class = "verdict v-red",
-                 strong("No text entered."),
-                 " Paste your aim statement above and press Check aim."))
+      return(p(class = "bad", style = "margin-top:24px;", "Please paste some text first."))
     }
 
     found <- d[!is.na(d$confidence), , drop = FALSE]
-
-    # keep only the best confidence level present
     if (nrow(found)) {
       rank <- match(found$confidence, c("high", "medium", "low"))
       found <- found[rank == min(rank), , drop = FALSE]
     }
 
-    # --- verdict ---
+    example_frame <- "e.g. \"The aim of this study was to ...\""
+
+    # aim statement
     if (!nrow(found)) {
-      verdict <- div(
-        class = "verdict v-red",
-        strong("No aim statement found."),
-        " None of the sentences you pasted states what the study set out to",
-        " do in a form a reader (or a text-mining tool) will recognise.",
-        " Consider an explicit frame: ",
-        tags$em("“Our aim was to…”"), ", ",
-        tags$em("“The objective of this study was to…”"), ", or ",
-        tags$em("“We sought to…”"), "."
-      )
+      aim <- list(span(class = "status bad", "Not found. "),
+                  "No sentence states what the study set out to do. ",
+                  "Consider stating it directly, ", example_frame, ".")
+    } else if (all(found$confidence == "high")) {
+      aim <- list(span(class = "status ok", "Found. "),
+                  "The aim is stated explicitly.")
     } else {
-      conf <- unique(found$confidence)
-      cls <- if (all(conf == "high")) "v-green" else "v-yellow"
-      msg <- if (all(conf == "high")) {
-        list(strong("Aim statement found."),
-             " The wording explicitly announces the study's objective.")
-      } else {
-        list(strong("Possible aim statement found, with lower confidence."),
-             " The sentence below reads as an aim but does not announce itself",
-             " as one. An explicit frame would make it unambiguous to a reader",
-             " skimming the paper, and to anyone text-mining the literature.")
-      }
-      verdict <- div(class = paste("verdict", cls), msg)
+      aim <- list(span(class = "status warn", "Unclear. "),
+                  "A sentence reads like an aim but is not introduced as one. ",
+                  "Consider stating it directly, ", example_frame, ".")
     }
 
-    # --- task signal ---
-    task_block <- NULL
-    if (nrow(found)) {
+    # type of question
+    if (!nrow(found)) {
+      qtype <- list(span(class = "small", "Not assessed (no aim found)."))
+    } else {
       sig <- paste(found$signal, collapse = " ")
       task <- classify_signal(sig)
       assoc <- grepl("associational", sig, fixed = TRUE)
-
-      task_text <- if (task == "ambiguous" && assoc) {
-        list(strong("The wording does not distinguish descriptive, predictive",
-                    " and causal questions."),
-             " Phrases such as ", tags$em("association between"), ", ",
-             tags$em("risk factors for"), " and ", tags$em("predictors of"),
-             " are used in epidemiology for all three. A reader cannot tell",
-             " which question is being answered, and the three require",
-             " different assumptions and license different interpretations.")
-      } else if (task == "ambiguous") {
-        list(strong("No task vocabulary detected."),
-             " The aim does not signal whether the question is descriptive,",
-             " predictive or causal.")
+      if (task != "ambiguous") {
+        qtype <- list(span(class = "status ok",
+                           paste0(toupper(substring(task, 1, 1)), substring(task, 2), ". ")),
+                      "The wording suggests a ", task, " question.",
+                      if (assoc) " It also uses associational wording, which on its own does not indicate the type of question.")
+      } else if (assoc) {
+        qtype <- list(span(class = "status warn", "Unclear. "),
+                      "Terms such as \"association between\", \"risk factors for\" and ",
+                      "\"predictors of\" are used for descriptive, predictive and causal ",
+                      "questions alike. State which one the study addresses.")
       } else {
-        list("The vocabulary points to a ", strong(task), " question.",
-             if (assoc) list(" Associational wording is also present, which",
-                             " does not distinguish the three tasks."))
+        qtype <- list(span(class = "status warn", "Unclear. "),
+                      "The wording does not indicate whether the question is ",
+                      "descriptive, predictive or causal.")
       }
-
-      task_block <- div(
-        class = paste("verdict", if (task == "ambiguous") "v-yellow" else "v-green"),
-        task_text
-      )
     }
 
-    # --- sentence detail ---
+    # sentences
     rows <- lapply(seq_len(nrow(d)), function(i) {
       r <- d[i, ]
-      tags_ <- list()
-      if (!is.na(r$confidence)) {
-        tags_ <- c(tags_, list(span(class = "tag",
-                                    paste("aim:", r$confidence))))
-      }
-      if (r$signal != "none") {
-        tags_ <- c(tags_, list(span(class = "tag", r$signal)))
-      }
-      why <- c(
-        if (r$strong) "explicit aim frame",
-        if (r$weak && !r$strong && !r$excluded) "first-person study frame",
-        if (r$excluded) "reads as a description of other work",
-        if (r$gap_before) "follows a gap statement"
-      )
-      div(
-        class = "sent",
-        div(class = "sent-text", r$sentence),
-        div(class = "meta",
-            tags_,
-            if (length(why)) paste0("— ", paste(why, collapse = "; "))
-            else "— no aim frame detected")
+      tags$tr(
+        tags$td(r$sentence),
+        tags$td(class = "c", if (is.na(r$confidence)) "no" else r$confidence),
+        tags$td(class = "c", if (r$signal == "none") "" else gsub(" \\+ ", ", ", r$signal))
       )
     })
 
     tagList(
-      verdict,
-      task_block,
-      h2("Sentence by sentence"),
-      div(rows),
-      div(class = "note",
-          strong("How to read this."),
-          " The task label comes from vocabulary alone. It reports what the",
-          " words signal, not what you meant, and it is not a judgement about",
-          " whether the question is a good one or whether your design can",
-          " answer it. A stated aim that names its task explicitly —",
-          tags$em(" “we estimated the effect of…”"), ",",
-          tags$em(" “we developed a prediction model for…”"), ",",
-          tags$em(" “we described the distribution of…”"),
-          " — leaves nothing for the reader to infer."),
-      div(class = "note",
-          "Part of ", tags$a(href = "https://jeremylabrecque.org",
-                             "EpiCheck"),
-          ". Aim taxonomy after Hernán, Hsu & Healy (2019), ",
-          tags$em("Chance"), " 32(1), 42–49.")
+      tags$table(class = "res", style = "margin-top:28px;",
+        tags$tr(tags$td(class = "k", "Aim statement"), tags$td(aim)),
+        tags$tr(tags$td(class = "k", "Type of question"), tags$td(qtype))
+      ),
+      h2("Sentences"),
+      tags$table(class = "sent",
+        tags$tr(tags$th("Sentence"), tags$th("Aim"), tags$th("Wording")),
+        rows
+      ),
+      div(class = "foot small",
+          p("Based on wording only. It does not assess whether the question is ",
+            "a good one or whether the design can answer it. Question types follow ",
+            "Hernán, Hsu and Healy (2019), ", tags$em("Chance"), " 32(1):42–49."),
+          p("Part of EpiCheck. ",
+            tags$a(href = "https://jeremylabrecque.org", target = "_top",
+                   "Jeremy Labrecque", .noWS = "after"), ", Erasmus MC."))
     )
   })
 }
