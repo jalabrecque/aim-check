@@ -43,8 +43,15 @@ GAP <- c(
   "\\bno stud(y|ies) (has|have)\\b",
   "\\bremains? (unclear|unknown|uncertain|poorly understood|to be)\\b",
   "\\bhas not been (studied|examined|investigated|established|assessed)\\b",
-  "\\bevidence is (limited|sparse|scarce|lacking|mixed|inconsistent)\\b"
+  "\\bevidence is (limited|sparse|scarce|lacking|mixed|inconsistent)\\b",
+  "\\b(given|because of|in light of|to address) the (limitations?|lack|paucity|scarcity|inconsistenc(y|ies)|gaps?) (of|in)\\b"
 )
+
+# A first-person study frame ("we estimated", "we evaluated") is about this
+# study even when the sentence also mentions earlier work ("Given the
+# limitations of previous work, we evaluated ..."), so it overrides the
+# prior-work exclusion.
+OWN <- "\\bwe (therefore |thus |here |then )?(aim(ed)?|sought|set out|conducted|undertook|performed|carried out|present|use[d]?|examine[d]?|estimate[d]?|assess(ed)?|evaluate[d]?|investigate[d]?|describe[d]?|develop(ed)?|compare[d]?|quantif(y|ied)|test(ed)?)\\b"
 
 # Sentences describing someone else's work, or aim language used for an
 # analytic choice rather than a research question.
@@ -120,11 +127,12 @@ score_sentences <- function(sentences) {
 
   strong <- g(STRONG, sentences)
   weak   <- g(WEAK, sentences)
-  excl   <- g(EXCLUDE, sentences)
+  excl   <- g(EXCLUDE, sentences) & !g(OWN, sentences)
   gap    <- g(GAP, sentences)
 
-  # a gap statement in the preceding sentence lends support
-  gap_before <- c(FALSE, gap[-n])
+  # a gap statement in the preceding sentence, or earlier in the same
+  # sentence, lends support
+  gap_before <- c(FALSE, gap[-n]) | (gap & weak)
 
   score <- (3 * strong) + (2 * (weak & !excl)) + (1 * gap_before)
 
