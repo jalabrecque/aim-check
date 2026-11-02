@@ -1,7 +1,7 @@
 # Aim Check -----------------------------------------------------------------
 #
 # A standalone version of the EpiCheck `aim_check` module that takes pasted
-# text rather than a parsed paper.
+# text rather than a parsed paper. 
 #
 # Deliberately depends on {shiny} alone -- no dplyr, no bslib, no DT -- so the
 # WebAssembly bundle stays small and the app starts quickly in the browser.
